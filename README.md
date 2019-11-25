@@ -25,7 +25,4 @@ This code assumes that the model passed supports these two methods.
 ----------
 
 
-Usage: `python grad-cam.py --image-path <path_to_image>`
-
-To use with CUDA:
-`python grad-cam.py --image-path <path_to_image> --use-cuda`
+Usage: `python grad-cam.py --image_path <path_to_image>`
