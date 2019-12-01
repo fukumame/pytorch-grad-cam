@@ -182,10 +182,10 @@ class ImageProcessor:
         return transformed_img
 
     @staticmethod
-    def save_cam_on_image(img, mask, file_path):
+    def save_cam_on_image(img, mask, file_path, heatmap_ratio):
         heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
         heatmap = np.float32(heatmap) / 255
-        cam = heatmap + np.float32(img)
+        cam = heatmap * heatmap_ratio + np.float32(img) * (1 - heatmap_ratio)
         cam = cam / np.max(cam)
         cv2.imwrite(str(file_path), np.uint8(255 * cam))
 
@@ -210,10 +210,11 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--image_path', "-i",type=str, default='./examples/both.png',
                         help='Input image path')
-    parser.add_argument('--output_dir', '-o', type=str, default='result')
-    parser.add_argument('--img_height', '-ih', type=int, default=224)
-    parser.add_argument('--img_width', '-iw', type=int, default=224)
-    parser.add_argument('--output_gb', '-g', action="store_true")
+    parser.add_argument('--output_dir', '-o', type=str, default='result', help='Directory path to output result')
+    parser.add_argument('--img_height', '-ih', type=int, default=224, help='image height of model input')
+    parser.add_argument('--img_width', '-iw', type=int, default=224, help='image width of model input')
+    parser.add_argument('--heatmap_ratio', '-hr', type=float, default=0.5, help='mixture ratio of heatmap')
+    parser.add_argument('--output_gb', '-g', action="store_true", help='mixture ratio of heatmap')
     parser.add_argument('--output_cam_gb', '-cg', action="store_true")
 
     args = parser.parse_args()
@@ -246,7 +247,7 @@ if __name__ == '__main__':
 
     cam_file_path = ImageProcessor.output_image_name(args.image_path, "cam", Path(args.output_dir))
 
-    ImageProcessor.save_cam_on_image(image_array, mask, cam_file_path)
+    ImageProcessor.save_cam_on_image(image_array, mask, cam_file_path, args.heatmap_ratio)
 
     gb_model = GuidedBackpropReLUModel(model=models.vgg19(pretrained=True), device=device)
     gb = gb_model(input_img, index=target_index)
